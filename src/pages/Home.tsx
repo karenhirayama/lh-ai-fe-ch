@@ -1,20 +1,26 @@
 import { useBrief } from '../context';
-import { BriefViewer, DetailPanel, EmptyState, Header, LoadingState } from '../components';
+import { BriefViewer, DetailPanel, EmptyState, ErrorState, Header, LoadingState } from '../components';
 
 export const Home = () => {
   const {
     brief,
     isLoading,
+    error,
     selectedCitation,
     selectedResult,
     citationStats,
     currentIndex,
     handleCitationClick,
     handleClosePanel,
+    retryLoading,
   } = useBrief();
 
   if (isLoading) {
     return <LoadingState />;
+  }
+
+  if (error) {
+    return <ErrorState message={error} onRetry={retryLoading} />;
   }
 
   if (!brief) {

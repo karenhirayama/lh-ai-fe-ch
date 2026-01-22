@@ -12,6 +12,7 @@ interface CitationStats {
 interface BriefContextType {
   brief: Brief | null;
   isLoading: boolean;
+  error: string | null;
   selectedCitation: Citation | null;
   selectedResult: VerificationResult | null;
   citationStats: CitationStats;
@@ -21,6 +22,7 @@ interface BriefContextType {
   navigateToNextCitation: () => void;
   navigateToPrevCitation: () => void;
   navigateToCitation: (index: number) => void;
+  retryLoading: () => void;
 }
 
 const BriefContext = createContext<BriefContextType | undefined>(undefined);
@@ -32,17 +34,40 @@ interface BriefProviderProps {
 export const BriefProvider = ({ children }: BriefProviderProps) => {
   const [brief, setBrief] = useState<Brief | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [selectedCitation, setSelectedCitation] = useState<Citation | null>(null);
   const [selectedResult, setSelectedResult] = useState<VerificationResult | null>(null);
 
-  // Simulate loading state
-  useEffect(() => {
+  const loadBrief = useCallback(() => {
+    setIsLoading(true);
+    setError(null);
+    
+    // Simulate loading state with potential error
     const timer = setTimeout(() => {
-      setBrief(sampleBrief);
-      setIsLoading(false);
+      // Simulate success (change to test error state)
+      const simulateError = false;
+      
+      if (simulateError) {
+        setError('Failed to connect to the verification service. Please check your connection and try again.');
+        setIsLoading(false);
+      } else {
+        setBrief(sampleBrief);
+        setIsLoading(false);
+      }
     }, 1500);
+    
     return () => clearTimeout(timer);
   }, []);
+
+  // Initial load
+  useEffect(() => {
+    const cleanup = loadBrief();
+    return cleanup;
+  }, [loadBrief]);
+
+  const retryLoading = useCallback(() => {
+    loadBrief();
+  }, [loadBrief]);
 
   const handleCitationClick = useCallback((citation: Citation, result: VerificationResult) => {
     setSelectedCitation(citation);
@@ -141,6 +166,7 @@ export const BriefProvider = ({ children }: BriefProviderProps) => {
   const value: BriefContextType = {
     brief,
     isLoading,
+    error,
     selectedCitation,
     selectedResult,
     citationStats,
@@ -150,6 +176,7 @@ export const BriefProvider = ({ children }: BriefProviderProps) => {
     navigateToNextCitation,
     navigateToPrevCitation,
     navigateToCitation,
+    retryLoading,
   };
 
   return (
